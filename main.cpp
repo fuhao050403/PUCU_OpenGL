@@ -1,3 +1,11 @@
+/*------------------------------------------------------------
+* Course: Software Project on CG,VR and Image Processing 4
+* Team: IMIM
+* Game Name: PUCU(PlayerUnknown's ChuoUniversity)
+* Chuo University
+* Information and System Engineering(Makino Lab)
+------------------------------------------------------------*/
+
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 #include <iostream>
@@ -7,8 +15,8 @@
 #include <vector>
 #include <map>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+//#define STB_IMAGE_IMPLEMENTATION
+//#include <stb_image.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -19,13 +27,14 @@
 
 // Customized classes
 #include "shader.h"
+#include "camera.h"
+#include "model.h"
 
 //pre-definition of functions
-void processInput(GLFWwindow* window);
-void keyboard_callback(GLFWwindow* window, float _movSpeed);
+void processInput(GLFWwindow* window, float _movSpeed);
 void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void RenderCube(Shader shader);
 void RenderFloor(Shader shader);
@@ -44,23 +53,14 @@ const unsigned int SHADOW_WIDTH = 1024;
 const unsigned int SHADOW_HEIGHT = 1024;
 
 //cursor pos(look rotation) initlization factors
-float fov = 60.0f;
-float yaw = -90.0f;
-float pitch = 0.0f;
-float lastX, lastY;
+Camera camera(glm::vec3(0.0f, 1.0f, 5.0f));
+float lastX = SCREEN_WIDTH / 2.0f;
+float lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
-
-//initialize cursor movement sensitivity
-float lookSensitivity = 0.15f;
 
 //Mouse button click varibles
 bool isLeftMouseClicked = false;
 bool isRightMouseClicked = false;
-
-//initialize camera position and front/up normal vector
-glm::vec3 cameraPos = glm::vec3(0.0f, 1.0f, 5.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 //properties of lamps in the scene
 glm::vec3 lampPositions[] =
@@ -100,12 +100,12 @@ unsigned int depthMap[NUMBER_OF_LAMP];
 std::vector<std::string> faces
 {
 	//filepaths of cubemap faces
-	"Textures/skybox/right.jpg",
-	"Textures/skybox/left.jpg",
-	"Textures/skybox/top.jpg",
-	"Textures/skybox/bottom.jpg",
-	"Textures/skybox/back.jpg",
-	"Textures/skybox/front.jpg"
+	"Resources/Textures/skybox/right.jpg",
+	"Resources/Textures/skybox/left.jpg",
+	"Resources/Textures/skybox/top.jpg",
+	"Resources/Textures/skybox/bottom.jpg",
+	"Resources/Textures/skybox/back.jpg",
+	"Resources/Textures/skybox/front.jpg"
 };
 unsigned int skyboxTexture = 0;
 
@@ -161,6 +161,8 @@ int main()
 	Shader skyboxShader("Shaders/cubemap.glvs", "Shaders/cubemap.glfs");
 	Shader textShader("Shaders/text.glvs", "Shaders/text.glfs");
 
+	Shader testModelShader("Shaders/object.glvs", "Shaders/object.glfs");
+
 	//Depth map frame buffer object
 	for (int i = 0; i < NUMBER_OF_LAMP; i++)
 	{
@@ -180,11 +182,12 @@ int main()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
+	Model testModel("Resources/Models/backpack/backpack.obj");
+
 	while (!glfwWindowShouldClose(window))
 	{
 		//invoke keyboard callback functions
-		processInput(window);
-		keyboard_callback(window, 0.1f);
+		processInput(window, 0.1f);
 
 		//setup shadow map frame buffer data
 		glm::mat4 lightProjection, lightView;
@@ -236,8 +239,8 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//Initilize matrix which send to uniforms of vertex shader
-		glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Fov), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 cubeModel, floorModel, lampModel[NUMBER_OF_LAMP];
 
 		//Rendering cube object in the scene
@@ -254,7 +257,7 @@ int main()
 			cubeShader.setVec3(std::string("light[" + std::to_string(i) + "].specular").c_str(), glm::vec3(1.0f));
 			cubeShader.setVec3(std::string("light[" + std::to_string(i) + "].lightPos").c_str(), lampPositions[i]);
 		}
-		cubeShader.setVec3("viewPos", cameraPos);
+		cubeShader.setVec3("viewPos", camera.Position);
 		cubeShader.setMat4("projection", projection);
 		cubeShader.setMat4("view", view);
 		for (int i = 0; i < NUMBER_OF_LAMP; i++)
@@ -265,6 +268,14 @@ int main()
 		cubeShader.setMat4("model", cubeModel);
 
 		RenderCube(cubeShader);
+
+		//Rendering model
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+		testModelShader.setMat4("model", model);
+		testModel.Draw(testModelShader);
+
 
 		//Rendering floor object in the scene
 		floorModel = glm::translate(floorModel, glm::vec3(0.0f, 0.0f, 0.0f));
@@ -325,32 +336,30 @@ int main()
 	return 0;
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, float _movSpeed)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE))
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
-}
 
-void keyboard_callback(GLFWwindow* window, float _movSpeed)
-{
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		cameraPos += glm::normalize(cameraFront) * _movSpeed;
+		camera.ProcessKeyboard(FORWARD, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 	{
-		cameraPos -= glm::normalize(cameraFront) * _movSpeed;
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * _movSpeed;
+		camera.ProcessKeyboard(LEFT, deltaTime);
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * _movSpeed;
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 	}
+	/*
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
 		cameraPos += glm::normalize(cameraUp) * _movSpeed;
@@ -359,6 +368,7 @@ void keyboard_callback(GLFWwindow* window, float _movSpeed)
 	{
 		cameraPos -= glm::normalize(cameraUp) * _movSpeed;
 	}
+	*/
 }
 
 void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
@@ -371,23 +381,17 @@ void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 	}
 
 	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
 	lastX = xpos;
 	lastY = ypos;
 
-	xoffset *= lookSensitivity;
-	yoffset *= lookSensitivity;
-	yaw += xoffset;
-	pitch += yoffset;
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
 
-	if (pitch > 89.0f) { pitch = 89.0f; }
-	if (pitch < -89.0f) { pitch = -89.0f; }
-
-	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraFront = glm::normalize(front);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -407,22 +411,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
 	{
 		isRightMouseClicked = false;
-	}
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	if ((fov >= 1.0f) && (fov <= 70.0f))
-	{
-		fov -= yoffset;
-	}
-	if (fov < 1.0f)
-	{
-		fov = 1.0f;
-	}
-	if (fov > 70.0f)
-	{
-		fov = 70.0f;
 	}
 }
 
@@ -494,7 +482,7 @@ void RenderCube(Shader shader)
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
 
-		cubeTexture = LoadTexture("Textures/cube.png");
+		cubeTexture = LoadTexture("Resources/Textures/cube.png");
 
 		shader.use();
 		shader.setInt("material.diffuse", 0);
@@ -546,7 +534,7 @@ void RenderFloor(Shader shader)
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
 
-		floorTexture = LoadTexture("Textures/floor.png");
+		floorTexture = LoadTexture("Resources/Textures/floor.png");
 
 		shader.use();
 		shader.setInt("material.diffuse", 0);

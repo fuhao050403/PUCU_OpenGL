@@ -1,12 +1,12 @@
 ﻿  main.cpp
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(300,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(368,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(369,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(373,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(374,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(375,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(376,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(417,17): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(751,20): warning C4018: '<': signed/unsigned mismatch
-D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(826,25): warning C4838: conversion from 'FT_Pos' to 'unsigned int' requires a narrowing conversion
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(311,21): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(378,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(379,11): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(383,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(384,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(386,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(387,10): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(394,28): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(731,20): warning C4018: '<': signed/unsigned mismatch
+D:\Projects\PUCU_OpenGL\PUCU_OpenGL\main.cpp(806,25): warning C4838: conversion from 'FT_Pos' to 'unsigned int' requires a narrowing conversion
   PUCU_OpenGL.vcxproj -> D:\Projects\PUCU_OpenGL\Debug\PUCU_OpenGL.exe

@@ -21,15 +21,18 @@
     <ClCompile Include="main.cpp">
       <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="mesh.cpp">
-      <Filter>Resource Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
